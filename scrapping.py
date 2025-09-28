@@ -3,6 +3,9 @@ from stem import Signal
 from stem.control import Controller
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 from fake_useragent import UserAgent
+from bs4 import BeautifulSoup
+import re
+
 
 # CONFIG
 TOR_SOCKS = "socks5://127.0.0.1:9050"   # Playwright proxy for Tor
@@ -26,6 +29,7 @@ def new_tor_identity(password=CONTROL_PASS, wait=5):
     except Exception as e:
         logging.warning("Failed to renew Tor identity: %s", e)
 
+
 def random_sleep(a=1.5, b=4.0):
     time.sleep(random.uniform(a, b))
 
@@ -46,6 +50,7 @@ def block_unnecessary_requests(route):
         return route.abort()
     return route.continue_()
 
+
 # main scraping function
 def scrape_page(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
     tries = 0
@@ -65,14 +70,13 @@ def scrape_page(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
                 user_data_dir = "./playwright_profile"
                 browser = p.chromium.launch_persistent_context(
                     user_data_dir,
-                    # headless=True,
+                    headless=True,
                     proxy=proxy,
-                    viewport={"width": 1366, "height": 768},
+                    # viewport={"width": 1366, "height": 768},
                     args=[
                         "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        # reduce fingerprint by disabling automation flags - Playwright already helps
-                    ],
+                        "--disable-dev-shm-usage"
+                        ],
                     record_video_dir=None,
                 )
 
@@ -116,6 +120,22 @@ def scrape_page(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
             new_tor_identity(password)
 
     raise RuntimeError("Failed to fetch after retries")
+
+def preprocess_text(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    text = soup.get_text(separator="\n")
+    # Clean up the text
+    text = "\n".join([line.strip() for line in text.splitlines() if line.strip()]) # remove leading/trailing whitespace and empty lines
+    with open("output_other.txt", "w", encoding="utf-8") as f:
+        f.write(text)
+    return text
+
+def split_text(text, max_length=1000):
+    chunks = []
+    for i in range(0, len(text), max_length):
+        chunks.append(text[i:i+max_length])
+    return chunks
+
 
 
 # https://finance.yahoo.com/

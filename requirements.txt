@@ -4,10 +4,7 @@ langchain_ollama
 playwright
 playwright-stealth
 asyncio
-tqdm
 beautifulsoup4
-Lxml
-html5lib
-python-dotenv
-
+requests
+re
 

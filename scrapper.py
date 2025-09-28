@@ -6,9 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from bs4 import BeautifulSoup 
-import requests
-import re
-import pandas as pd
 
 
 chrome_options = Options()
