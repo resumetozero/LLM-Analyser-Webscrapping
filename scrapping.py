@@ -4,7 +4,6 @@ from stem.control import Controller
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
-import re
 
 
 # CONFIG
@@ -102,7 +101,6 @@ def scrape_page(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
                 html = page.content()
                 # parse minimal info: page title & url snapshot
                 title = page.title()
-                current_url = page.url
 
                 # close context (keeps profile data)
                 browser.close()
