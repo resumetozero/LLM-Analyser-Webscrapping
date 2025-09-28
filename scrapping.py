@@ -126,23 +126,9 @@ def preprocess_text(html):
     text = soup.get_text(separator="\n")
     # Clean up the text
     text = "\n".join([line.strip() for line in text.splitlines() if line.strip()]) # remove leading/trailing whitespace and empty lines
-<<<<<<< HEAD
-    with open("output_other.txt", "w", encoding="utf-8") as f:
-        f.write(text)
-    return text
-=======
     # with open("output_other.txt", "w", encoding="utf-8") as f:
     #     f.write(text)
     return text
-
-def split_text(text, max_length=1000):
-    chunks = []
-    for i in range(0, len(text), max_length):
-        chunks.append(text[i:i+max_length])
-    return chunks
-
-
->>>>>>> e76133e (Attached Ollama LLM Model)
 
 def split_text(text, max_length=1000):
     chunks = []
