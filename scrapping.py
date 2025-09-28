@@ -135,10 +135,3 @@ def split_text(text, max_length=1000):
     for i in range(0, len(text), max_length):
         chunks.append(text[i:i+max_length])
     return chunks
-
-
-
-# https://finance.yahoo.com/
-# https://www.moneycontrol.com/
-# tor --hash-password password:S3cur3CollegeProjPass
-# 16:71DC33176DB91D1760BF805A1526C0DC3323DC5573FF96D823D0F6EE99
