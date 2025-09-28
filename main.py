@@ -1,6 +1,10 @@
 import streamlit as st
 from scrapping import scrape_page, preprocess_text, split_text
+<<<<<<< HEAD
 
+=======
+from parse import parse_ollama
+>>>>>>> e76133e (Attached Ollama LLM Model)
 
 import os
 import sys
@@ -32,6 +36,7 @@ with st.expander("Show scrapped content"):
     st.text_area("Scrapped Content", value=st.session_state['dom'], height=300)
 
 if "dom" in st.session_state:
+<<<<<<< HEAD
     parsed_content=st.text_area("Describe what do you want to Analyze from the scrapped content?", height=100)
     if st.button("Analyze"):
         if parsed_content:
@@ -39,5 +44,17 @@ if "dom" in st.session_state:
             # Here you can add your analysis logic using LLMs or any other method
 
             st.success("Analysis complete!")
+=======
+    query=st.text_area("Describe what do you want to Analyze from the scrapped content?", height=100)
+    if st.button("Analyze"):
+        if query:
+            st.write(f"Analyzing the content for: {query}")
+
+            # Here you can add your analysis logic using LLMs or any other method
+            analysis_results = parse_ollama(st.session_state['chunks'], query)
+            st.success("Analysis complete!")
+            st.write(analysis_results)
+            
+>>>>>>> e76133e (Attached Ollama LLM Model)
         else:
             st.error("Please enter a valid input for analysis.")

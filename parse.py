@@ -3,7 +3,11 @@ from langchain_core.prompts import ChatMessagePromptTemplate
 
 model = OllamaLLM(model="llama3.2")
 
+<<<<<<< HEAD
 def parse_content(content_chunks, query):
+=======
+def parse_ollama(content_chunks, query):
+>>>>>>> e76133e (Attached Ollama LLM Model)
     prompt = ChatMessagePromptTemplate.from_template(
         "You are a helpful assistant that extracts and analyse relevant information from the provided content based on the user's query.\n"
         "Content: {content_chunks}\n"
