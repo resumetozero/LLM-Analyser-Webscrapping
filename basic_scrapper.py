@@ -29,8 +29,3 @@ def scrape_page(url):
         return None
     finally:
         driver.quit()
-
-
-        
-# https://finance.yahoo.com/
-# https://www.moneycontrol.com/
