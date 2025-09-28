@@ -1,2 +1,5 @@
 __pycache__
 web_venv
+*.pyc
+playwright_profile
+ouput.txt

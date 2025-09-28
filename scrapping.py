@@ -1,4 +1,4 @@
-import time, random, csv, os, sys, logging
+import time, random, logging
 from stem import Signal
 from stem.control import Controller
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -8,6 +8,7 @@ from fake_useragent import UserAgent
 TOR_SOCKS = "socks5://127.0.0.1:9050"   # Playwright proxy for Tor
 CONTROL_PASS = "S3cur3CollegeProjPass"  # Tor control password
 
+
 # make a UA generator
 ua = UserAgent()
 
@@ -15,7 +16,7 @@ ua = UserAgent()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 # helpers
-def new_tor_identity(password=None, wait=5):
+def new_tor_identity(password=CONTROL_PASS, wait=5):
     try:
         with Controller.from_port(port=9051) as controller:
             controller.authenticate(password)
@@ -41,12 +42,12 @@ def human_scroll_and_pause(page, height=2000):
 
 def block_unnecessary_requests(route):
     # block images/fonts/ads to reduce bandwidth and noise (optional)
-    if route.request.resource_type in ["font","stylesheet"]:
+    if route.request.resource_type in ["font","stylesheet","style","script"]:
         return route.abort()
     return route.continue_()
 
 # main scraping function
-def scrape_page(url, rotate_ip_every=3, password=None, max_retries=3):
+def scrape_page(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
     tries = 0
     while tries < max_retries:
         tries += 1
@@ -62,11 +63,11 @@ def scrape_page(url, rotate_ip_every=3, password=None, max_retries=3):
             with sync_playwright() as p:
                 # Use persistent context to keep cookies and localStorage between runs
                 user_data_dir = "./playwright_profile"
-                browser = p.firefox.launch_persistent_context(
+                browser = p.chromium.launch_persistent_context(
                     user_data_dir,
-                    headless=True,
+                    # headless=True,
                     proxy=proxy,
-                    # viewport={"width": 1366, "height": 768},
+                    viewport={"width": 1366, "height": 768},
                     args=[
                         "--no-sandbox",
                         "--disable-dev-shm-usage",
@@ -84,7 +85,7 @@ def scrape_page(url, rotate_ip_every=3, password=None, max_retries=3):
                 page.route("**/*", lambda route: block_unnecessary_requests(route))
 
                 logging.info("Visiting %s with UA: %s", url, user_agent)
-                page.goto(url, timeout=45000)
+                page.goto(url, timeout=90000)
                 page.wait_for_selector("body", timeout=20000)
 
                 # human-like actions
@@ -120,4 +121,4 @@ def scrape_page(url, rotate_ip_every=3, password=None, max_retries=3):
 # https://finance.yahoo.com/
 # https://www.moneycontrol.com/
 # tor --hash-password password:S3cur3CollegeProjPass
-# 16:878185D1D154E1AB6012A30C9A884028217D0C7B5B2A4A85C427B090D6
+# 16:71DC33176DB91D1760BF805A1526C0DC3323DC5573FF96D823D0F6EE99
