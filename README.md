@@ -48,6 +48,9 @@ It’s aimed at researchers, final‑year projects, and prototyping LLM-based co
 * Tor SOCKS5 proxy support and optional obfuscation (bridges / obfs4) for censored networks.
 * Human-like browsing (UA rotation, scrolling, randomized delays) to reduce detection.
 * Save raw HTML and cleaned text in Streamlit session state and to disk.
+* Store chunks in Chroma vector DB with embeddings for fast retrieval.
+* Query the content using Ollama LLM for analysis.
+* Display scraped content and analysis results in **Streamlit** interface.
 * Optional local LLM inference via Ollama (small models recommended for low‑RAM machines).
 
 ---
@@ -63,6 +66,16 @@ It’s aimed at researchers, final‑year projects, and prototyping LLM-based co
 * `stem` (control Tor from Python)
 * Ollama (optional local LLM runner)
 * `fake-useragent` (UA rotation)
+* ChromaDB (local vector database)
+* Pydantic (data validation)
+
+st.image("product_image.png", caption="Product Image", use_column_width=True)
+
+---
+## Product Image
+
+st.image("product_image1.png", use_column_width=True)
+st.image("product_image2.png", use_column_width=True)
 
 ---
 
@@ -228,6 +241,7 @@ docker run -d -p 11434:11434 --name ollama ollama/ollama
 ```bash
 # choose a small model; example names may vary
 ollama pull llama3.2
+ollama pull nomic-embed-text
 ollama run llama3.2
 ```
 
