@@ -20,7 +20,7 @@ if st.button("Scrape"):
 
         st.session_state['dom']=page_content
         st.session_state['chunks']=split_contents
-        st.session_state['html']=page_content_soup
+        # st.session_state['html']=page_content_soup
 
         st.success('web page scraped and processed successfully!')
 
@@ -29,7 +29,11 @@ if st.button("Scrape"):
 
 
 with st.expander("Show scrapped content"):
-    st.text_area("Scrapped Content", value=st.session_state['dom'], height=300)
+    if "dom" in st.session_state:
+        st.text_area("Scrapped Content", value=st.session_state['dom'], height=300)
+    else:
+        st.info("No content scraped yet.")
+
 
 if "dom" in st.session_state:
     query=st.text_area("Describe what do you want to Analyze from the scrapped content?", height=100)

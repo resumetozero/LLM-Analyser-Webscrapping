@@ -4,3 +4,4 @@ web_venv
 playwright_profile
 output.txt
 output_other.txt
+chroma_db
