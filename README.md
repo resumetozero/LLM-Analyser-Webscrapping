@@ -227,8 +227,8 @@ docker run -d -p 11434:11434 --name ollama ollama/ollama
 
 ```bash
 # choose a small model; example names may vary
-ollama pull gemma3-small
-ollama run gemma3-small
+ollama pull llama3.2
+ollama run llama3.2
 ```
 
 **Python client usage (after Ollama running):**
