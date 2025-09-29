@@ -6,5 +6,5 @@ playwright-stealth
 asyncio
 beautifulsoup4
 requests
-re
-
+langchain-community
+chromadb
