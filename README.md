@@ -69,13 +69,13 @@ It’s aimed at researchers, final‑year projects, and prototyping LLM-based co
 * ChromaDB (local vector database)
 * Pydantic (data validation)
 
-st.image("techStack.png", caption="Product Image", use_column_width=True)
+![Tech Stack](techStack.png)
 
 ---
 ## Product Image
 
-st.image("product_image1.png", use_column_width=True)
-st.image("product_image2.png", use_column_width=True)
+![product_image](product_image1.png)
+![product_image](product_image2.png)
 
 ---
 
