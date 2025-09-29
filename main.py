@@ -1,5 +1,6 @@
 import streamlit as st
-from scrapping import scrape_page, preprocess_text, split_text
+import asyncio
+from scrapping import scrape_page_async, preprocess_text, split_text
 from parse import parse_ollama
 
 import os
@@ -13,17 +14,19 @@ url= st.text_input("Enter the URL to scrape web-page:")
 
 if st.button("Scrape"):
     if url:
-        st.write(f"Scraping the web page")
-        page_content_soup = scrape_page(url)
-        page_content=preprocess_text(page_content_soup)
-        split_contents = split_text(page_content, max_length=3000)
+        with st.spinner("Scraping the web page..."):
+            try:
+                page_content_soup = asyncio.run(scrape_page_async(url))
+                page_content=preprocess_text(page_content_soup)
+                split_contents = split_text(page_content, max_length=3000)
 
-        st.session_state['dom']=page_content
-        st.session_state['chunks']=split_contents
-        # st.session_state['html']=page_content_soup
+                st.session_state['dom']=page_content
+                st.session_state['chunks']=split_contents
+                # st.session_state['html']=page_content_soup
 
-        st.success('web page scraped and processed successfully!')
-
+                st.success('web page scraped and processed successfully!')
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
     else:
         st.error("Please enter a valid URL.")
 

@@ -1,135 +1,118 @@
-import time, random, logging
+import asyncio
+import random
+import logging
 from stem import Signal
 from stem.control import Controller
-from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+from playwright.async_api import async_playwright, TimeoutError as PWTimeout
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 
-
 # CONFIG
-TOR_SOCKS = "socks5://127.0.0.1:9050"   # Playwright proxy for Tor
-CONTROL_PASS = "S3cur3CollegeProjPass"  # Tor control password
+TOR_SOCKS = "socks5://127.0.0.1:9050"
+CONTROL_PASS = "S3cur3CollegeProjPass"
 
-
-# make a UA generator
+# UA generator
 ua = UserAgent()
 
 # logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-# helpers
-def new_tor_identity(password=CONTROL_PASS, wait=5):
-    try:
-        with Controller.from_port(port=9051) as controller:
-            controller.authenticate(password)
-            controller.signal(Signal.NEWNYM)
-        logging.info("Requested new Tor circuit.")
-        time.sleep(wait)
-    except Exception as e:
-        logging.warning("Failed to renew Tor identity: %s", e)
+# ---------- Helpers ----------
 
+async def new_tor_identity(password=CONTROL_PASS, wait=5):
+    """Request new Tor circuit asynchronously using asyncio.to_thread"""
+    def renew():
+        try:
+            with Controller.from_port(port=9051) as controller:
+                controller.authenticate(password)
+                controller.signal(Signal.NEWNYM)
+            logging.info("Requested new Tor circuit.")
+        except Exception as e:
+            logging.warning("Failed to renew Tor identity: %s", e)
+    await asyncio.to_thread(renew)
+    await asyncio.sleep(wait)
 
-def random_sleep(a=1.5, b=4.0):
-    time.sleep(random.uniform(a, b))
+async def random_sleep(a=1.5, b=4.0):
+    await asyncio.sleep(random.uniform(a, b))
 
-def human_scroll_and_pause(page, height=2000):
-    # scroll in chunks to simulate reading
-    viewport_h = page.evaluate("() => window.innerHeight")
+async def human_scroll_and_pause(page, height=2000):
+    viewport_h = await page.evaluate("() => window.innerHeight")
     total = height
     step = int(viewport_h * 0.6)
     scrolled = 0
     while scrolled < total:
-        page.mouse.wheel(0, step)
-        random_sleep(0.5, 1.4)
+        await page.mouse.wheel(0, step)
+        await random_sleep(0.5, 1.4)
         scrolled += step
 
-def block_unnecessary_requests(route):
-    # block images/fonts/ads to reduce bandwidth and noise (optional)
+async def block_unnecessary_requests(route):
     if route.request.resource_type in ["font","stylesheet","style","script"]:
-        return route.abort()
-    return route.continue_()
+        await route.abort()
+    else:
+        await route.continue_()
 
+# ---------- Scraping Function ----------
 
-# main scraping function
-def scrape_page(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
+async def scrape_page_async(url, rotate_ip_every=3, password=CONTROL_PASS, max_retries=3):
     tries = 0
     while tries < max_retries:
         tries += 1
         try:
-            # rotate Tor IP occasionally
             if tries == 1:
-                new_tor_identity(password)
+                await new_tor_identity(password)
 
             proxy = {"server": TOR_SOCKS}
-            # random UA
             user_agent = ua.random
 
-            with sync_playwright() as p:
-                # Use persistent context to keep cookies and localStorage between runs
+            async with async_playwright() as p:
                 user_data_dir = "./playwright_profile"
-                browser = p.chromium.launch_persistent_context(
-                    user_data_dir,
+                browser = await p.chromium.launch_persistent_context(
+                    user_data_dir=user_data_dir,
                     headless=True,
                     proxy=proxy,
-                    # viewport={"width": 1366, "height": 768},
-                    args=[
-                        "--no-sandbox",
-                        "--disable-dev-shm-usage"
-                        ],
-                    record_video_dir=None,
+                    args=["--no-sandbox", "--disable-dev-shm-usage"],
                 )
 
-                page = browser.new_page()
-                page.set_extra_http_headers({"User-Agent": user_agent})
-                # set timezone / language if needed
-                page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-
-                # route to block heavy resources
-                page.route("**/*", lambda route: block_unnecessary_requests(route))
+                page = await browser.new_page()
+                await page.set_extra_http_headers({"User-Agent": user_agent})
+                await page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                await page.route("**/*", block_unnecessary_requests)
 
                 logging.info("Visiting %s with UA: %s", url, user_agent)
-                page.goto(url, timeout=90000)
-                page.wait_for_selector("body", timeout=20000)
+                await page.goto(url, timeout=90000)
+                await page.wait_for_selector("body", timeout=20000)
 
                 # human-like actions
-                random_sleep(1.0, 2.5)
-                human_scroll_and_pause(page, height=1500)
-                # move mouse a bit
-                page.mouse.move(random.randint(100, 500), random.randint(100, 300))
-                random_sleep(0.5, 1.0)
+                await random_sleep(1.0, 2.5)
+                await human_scroll_and_pause(page, height=1500)
+                await page.mouse.move(random.randint(100, 500), random.randint(100, 300))
+                await random_sleep(0.5, 1.0)
 
-                html = page.content()
-                # parse minimal info: page title & url snapshot
-                title = page.title()
+                html = await page.content()
+                title = await page.title()
 
-                # close context (keeps profile data)
-                browser.close()
-
+                await browser.close()
                 logging.info("Success: %s (%d chars)", title, len(html))
                 return html
 
         except PWTimeout as e:
             logging.warning("Playwright timeout, try %s/%s: %s", tries, max_retries, e)
-            random_sleep(2, 6)
-            new_tor_identity(password)
+            await random_sleep(2, 6)
+            await new_tor_identity(password)
         except Exception as e:
             logging.exception("Scrape failed attempt %s/%s: %s", tries, max_retries, e)
-            random_sleep(2, 6)
-            new_tor_identity(password)
+            await random_sleep(2, 6)
+            await new_tor_identity(password)
 
     raise RuntimeError("Failed to fetch after retries")
+
+# ---------- Text Processing ----------
 
 def preprocess_text(html):
     soup = BeautifulSoup(html, 'html.parser')
     text = soup.get_text(separator="\n")
-    # Clean up the text
-    text = "\n".join([line.strip() for line in text.splitlines() if line.strip()]) # remove leading/trailing whitespace and empty lines
-    # with open("output_other.txt", "w", encoding="utf-8") as f:
-    #     f.write(text)
+    text = "\n".join([line.strip() for line in text.splitlines() if line.strip()])
     return text
 
 def split_text(text, max_length=1000):
-    chunks = []
-    for i in range(0, len(text), max_length):
-        chunks.append(text[i:i+max_length])
-    return chunks
+    return [text[i:i+max_length] for i in range(0, len(text), max_length)]
