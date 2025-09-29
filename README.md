@@ -1,6 +1,6 @@
 # LLM‑Analyser‑Webscrapping
 
-> Streamlit + Playwright pipeline that scrapes dynamic web pages, extracts and preprocesses text (BeautifulSoup), and analyzes content using an LLM — a local model runner (Ollama). Optional Tor + bridge (obfs4) support is included so the scraper can work from censored networks. This README **does not** contain any secrets or private bridge credentials — it explains how to generate and configure them locally.
+> Streamlit + Playwright pipeline that scrapes dynamic web pages, extracts and preprocesses text (BeautifulSoup), and analyzes content using a local model runner (Ollama). Optional Tor + bridge (obfs4) support is included so the scraper can work from censored networks. This README **does not** contain any secrets or private bridge credentials — it explains how to generate and configure them locally.
 
 ---
 

@@ -8,3 +8,6 @@ beautifulsoup4
 requests
 langchain-community
 chromadb
+stem
+selenium
+fake_useragent
